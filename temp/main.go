@@ -4,35 +4,45 @@ import "fmt"
 
 func main() {
 
-	a1 := []int32{2, 4}
-	a2 := []int32{16, 32, 96}
+	// container := [][]int32{
+	// 	{0, 2, 1},
+	// 	{1, 1, 1},
+	// 	{2, 0, 0},
+	// }
 
-	getTotalX(a1, a2)
+	container := [][]int32{
+		{1, 3, 1},
+		{2, 1, 2},
+		{3, 3, 3},
+	}
+
+	organizingContainers(container)
 
 }
 
-func getTotalX(a []int32, b []int32) {
+// Complete the organizingContainers function below.
+func organizingContainers(container [][]int32) {
 
-	temp := []int32{}
-	for i := int32(0); i < 100; i++ {
-		for _, n := range a {
-			if i%n == 0 {
-				temp = append(temp, i)
+	fmt.Println(container)
+
+	for c := 0; c < len(container); c++ {
+		for t := 0; t < len(container); t++ {
+			if 0 == t {
+				continue
 			}
-		}
-
-	}
-
-	fmt.Println(temp)
-
-}
-
-func divisible(a int32) []int32 {
-	temp := []int32{}
-	for j := int32(1); j < 100; j++ {
-		if j%a == 0 {
-			temp = append(temp, j)
+			container[0][c] += container[t][c]
 		}
 	}
-	return temp
+
+	possible := "Possible"
+
+	for _, i := range container[0] {
+		if int(i) > len(container) {
+			possible = "Impossible"
+		}
+	}
+
+	fmt.Println(possible, container)
+
+	// return possible
 }
