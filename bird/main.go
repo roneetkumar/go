@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 
-	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -39,39 +39,34 @@ func run() error {
 	}
 	defer w.Destroy()
 
-	if err := drawTitle(r); err != nil {
+	if err := drawTitle(r, "THE BIRD GAME"); err != nil {
 		return fmt.Errorf("could not draw the title: %v", err)
 	}
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(time.Second)
 
-	if err := drawBackground(r); err != nil {
-		return fmt.Errorf("could not draw the background: %v", err)
-	}
-	time.Sleep(5 * time.Second)
-
-	return nil
-}
-
-func drawBackground(r *sdl.Renderer) error {
-	r.Clear()
-
-	t, err := img.LoadTexture(r, "res/imgs/background.png")
-
+	s, err := newScene(r)
 	if err != nil {
-		return fmt.Errorf("could not load background image: %v", err)
+		return fmt.Errorf("could not create scene %v", err)
 	}
-	defer t.Destroy()
+	defer s.destroy()
 
-	if err := r.Copy(t, nil, nil); err != nil {
-		return fmt.Errorf("could not copy background: %v", err)
+	events := make(chan sdl.Event)
+	errc := s.run(events, r)
+
+	runtime.LockOSThread()
+	for {
+		select {
+		case events <- sdl.WaitEvent():
+		case err := <-errc:
+			return err
+		}
+
 	}
 
-	r.Present()
-	return nil
 }
 
-func drawTitle(r *sdl.Renderer) error {
+func drawTitle(r *sdl.Renderer, text string) error {
 
 	r.Clear()
 
@@ -83,7 +78,7 @@ func drawTitle(r *sdl.Renderer) error {
 	defer f.Close()
 
 	c := sdl.Color{R: 255, G: 100, B: 0, A: 255}
-	s, err := f.RenderUTF8Solid("THE BIRD GAME", c)
+	s, err := f.RenderUTF8Solid(text, c)
 
 	if err != nil {
 		return fmt.Errorf("could not render title: %v", err)
